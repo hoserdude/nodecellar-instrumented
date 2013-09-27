@@ -8,6 +8,7 @@ var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('winedb', server, {safe: true});
 
 db.open(function(err, db) {
+    //populateDB(); //Do this one time
     if(!err) {
         console.log("Connected to 'winedb' database");
         db.collection('wines', {safe:true}, function(err, collection) {
