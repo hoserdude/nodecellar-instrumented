@@ -30,9 +30,6 @@ winston.loggers.add('app', {
 
 var winstonLogger = winston.loggers.get('app');
 
-//Scarlet setup
-var scarlet = new Scarlet('scarlet-winston');
-var scarletWinston = scarlet.plugins.winston;
 //Attach Logger to object to get free method timing
 //scarletWinston.logger(winstonLogger).bindTo(wine.findAll);
 
@@ -46,17 +43,16 @@ var scarletWinston = scarlet.plugins.winston;
  result - result of the method called (populated after main method gets called)
  */
 function methodInterceptor(proceed, invocation){
-    proceed();
+    var result=proceed();
     var time = invocation.executionEndDate - invocation.executionStartDate;
     var parameters = Array.prototype.slice.call(invocation.args);
-    winstonLogger.info("object=" +invocation.objectName
-        + "; method="+invocation.methodName
-        + "; result="+invocation.result
-        + "; time=" + time
-        + "; args=["+parameters+"]");
+    winstonLogger.info("method="+invocation.methodName+"; time="+time);
+//    winstonLogger.info("object=" +invocation.objectName
+//        + "; method="+invocation.methodName
+//        + "; result="+invocation.result
+//        + "; time=" + time
+//        + "; args=["+parameters+"]");
 }
-
-scarlet.interceptAsync(wine.findAll).using(methodInterceptor);
 
 var notFound=function (req,res,next){
     winstonLogger.warn('something embarrassing happened - page not found: ' + req.url);
@@ -82,11 +78,20 @@ app.configure(function () {
     app.use(errorHandler);
 });
 
+//Scarlet setup
+var scarlet = new Scarlet('scarlet-winston');
+var scarletWinston = scarlet.plugins.winston;
+
+scarlet.intercept(wine).using(methodInterceptor);
+
+
+
 app.get('/wines', wine.findAll);
 app.get('/wines/:id', wine.findById);
 app.post('/wines', wine.addWine);
 app.put('/wines/:id', wine.updateWine);
 app.delete('/wines/:id', wine.deleteWine);
+
 
 http.createServer(app).listen(app.get('port'), function () {
     console.log("Express server listening on port " + app.get('port'));
