@@ -17,7 +17,9 @@ express.logger.token('rid', function(req, res){
     return req.rid;
 })
 
-express.logger.token('sid', function(req, res){ return req.sessionID; })
+express.logger.token('sid', function(req, res){ return req.sessionID; });
+//Fix the formatting of the date to ISO/UTC
+express.logger.token('date', function(req, res) {return new Date().toISOString(); });
 express.logger.format('instrumented', ':date; sid=:sid; rid=:rid; ip=:remote-addr; m=:method; u=:url; s=:status; ref=:referrer; ua=:user-agent; t=:response-time');
 
 //Winston setup
@@ -45,13 +47,9 @@ var winstonLogger = winston.loggers.get('app');
 function methodInterceptor(proceed, invocation){
     var result=proceed();
     var time = invocation.executionEndDate - invocation.executionStartDate;
-    var parameters = Array.prototype.slice.call(invocation.args);
-    winstonLogger.info("method="+invocation.methodName+"; time="+time);
-//    winstonLogger.info("object=" +invocation.objectName
-//        + "; method="+invocation.methodName
-//        + "; result="+invocation.result
-//        + "; time=" + time
-//        + "; args=["+parameters+"]");
+    winstonLogger.info("object=" +invocation.objectName
+        + "; method="+invocation.methodName
+        + "; time=" + time);
 }
 
 var notFound=function (req,res,next){

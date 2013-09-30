@@ -1,19 +1,34 @@
 var mongo = require('mongodb');
+var winston = require('winston');
 
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
 
+//Winston setup
+winston.loggers.add('wine', {
+    console: {
+        timestamp: true,
+        colorize: false
+    }
+});
+
+var winstonLogger = winston.loggers.get('wine');
+
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('winedb', server, {safe: true});
 
+exports.populateDb = function(req, res) {
+    populateDB();
+    winstonLogger.info("DB Populated");
+}
+
 db.open(function(err, db) {
-    //populateDB(); //Do this one time
     if(!err) {
-        console.log("Connected to 'winedb' database");
+        winstonLogger.info("Connected to 'winedb' database");
         db.collection('wines', {safe:true}, function(err, collection) {
             if (err) {
-                console.log("The 'wines' collection doesn't exist. Creating it with sample data...");
+                winstonLogger.info("The 'wines' collection doesn't exist. Creating it with sample data...");
                 populateDB();
             }
         });
@@ -22,7 +37,7 @@ db.open(function(err, db) {
 
 exports.findById = function(req, res) {
     var id = req.params.id;
-    console.log('Retrieving wine: ' + id);
+    winstonLogger.info('Retrieving wine: ' + id);
     db.collection('wines', function(err, collection) {
         collection.findOne({'_id':new BSON.ObjectID(id)}, function(err, item) {
             res.send(item);
@@ -40,13 +55,13 @@ exports.findAll = function(req, res) {
 
 exports.addWine = function(req, res) {
     var wine = req.body;
-    console.log('Adding wine: ' + JSON.stringify(wine));
+    winstonLogger.info('Adding wine: ' + JSON.stringify(wine));
     db.collection('wines', function(err, collection) {
         collection.insert(wine, {safe:true}, function(err, result) {
             if (err) {
                 res.send({'error':'An error has occurred'});
             } else {
-                console.log('Success: ' + JSON.stringify(result[0]));
+                winstonLogger.info('Success: ' + JSON.stringify(result[0]));
                 res.send(result[0]);
             }
         });
@@ -57,15 +72,14 @@ exports.updateWine = function(req, res) {
     var id = req.params.id;
     var wine = req.body;
     delete wine._id;
-    console.log('Updating wine: ' + id);
-    console.log(JSON.stringify(wine));
+    winstonLogger.info('Updating wine; wineId=' + id);
     db.collection('wines', function(err, collection) {
         collection.update({'_id':new BSON.ObjectID(id)}, wine, {safe:true}, function(err, result) {
             if (err) {
-                console.log('Error updating wine: ' + err);
+                winstonLogger.error('Error updating wine; errMsg=' + err);
                 res.send({'error':'An error has occurred'});
             } else {
-                console.log('' + result + ' document(s) updated');
+                winstonLogger.info('' + result + ' document(s) updated');
                 res.send(wine);
             }
         });
