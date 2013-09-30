@@ -82,8 +82,7 @@ var scarletWinston = scarlet.plugins.winston;
 
 scarlet.intercept(wine).using(methodInterceptor);
 
-
-
+app.get('/populateDb', wine.populateDb);
 app.get('/wines', wine.findAll);
 app.get('/wines/:id', wine.findById);
 app.post('/wines', wine.addWine);
