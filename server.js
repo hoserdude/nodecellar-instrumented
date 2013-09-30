@@ -8,19 +8,25 @@ var express = require('express'),
 //Instrumentation Stuff
 
 //Express Logger Setup
-express.logger.token('rid', function(req, res){
-    if(!req.rid){
-        req.rid=Math.floor(Math.random()*100000);
-    }else{
+express.logger.token('rid', function (req, res) {
+    if (!req.rid) {
+        req.rid = Math.floor(Math.random() * 100000);
+    } else {
         return req.rid;
     }
     return req.rid;
 })
 
-express.logger.token('sid', function(req, res){ return req.sessionID; });
+express.logger.token('sid', function (req, res) {
+    return req.sessionID;
+});
 //Fix the formatting of the date to ISO/UTC
-express.logger.token('date', function(req, res) {return new Date().toISOString(); });
-express.logger.format('instrumented', ':date; sid=:sid; rid=:rid; ip=:remote-addr; m=:method; u=:url; s=:status; ref=:referrer; ua=:user-agent; t=:response-time');
+express.logger.token('date', function (req, res) {
+    return new Date().toISOString();
+});
+
+express.logger.format('instrumented', ':date; sid=:sid; rid=:rid; ip=:remote-addr; m=:method; ' +
+                        'u=:url; s=:status; ref=:referrer; ua=:user-agent; t=:response-time');
 
 //Winston setup
 winston.loggers.add('app', {
@@ -32,9 +38,6 @@ winston.loggers.add('app', {
 
 var winstonLogger = winston.loggers.get('app');
 
-//Attach Logger to object to get free method timing
-//scarletWinston.logger(winstonLogger).bindTo(wine.findAll);
-
 /*
  args - the arguments passed into the method
  methodName - the method name being intercepted
@@ -44,22 +47,22 @@ var winstonLogger = winston.loggers.get('app');
  executionStartDate - the start datetime of the method execution
  result - result of the method called (populated after main method gets called)
  */
-function methodInterceptor(proceed, invocation){
-    var result=proceed();
+function methodInterceptor(proceed, invocation) {
+    var result = proceed();
     var time = invocation.executionEndDate - invocation.executionStartDate;
-    winstonLogger.info("object=" +invocation.objectName
-        + "; method="+invocation.methodName
+    winstonLogger.info("object=" + invocation.objectName
+        + "; method=" + invocation.methodName
         + "; time=" + time);
 }
 
-var notFound=function (req,res,next){
+var notFound = function (req, res, next) {
     winstonLogger.warn('something embarrassing happened - page not found: ' + req.url);
-    res.send("404","Custom 404 page goes here");
+    res.send("404", "Custom 404 page goes here");
 };
 
-var errorHandler=function (err,req,res,next){
+var errorHandler = function (err, req, res, next) {
     winstonLogger.error('something terrible happened');
-    res.send("500","Custom 500 page goes here");
+    res.send("500", "Custom 500 page goes here");
 };
 
 var app = express();
@@ -78,8 +81,7 @@ app.configure(function () {
 
 //Scarlet setup
 var scarlet = new Scarlet('scarlet-winston');
-var scarletWinston = scarlet.plugins.winston;
-
+//Intercept calls to the wine
 scarlet.intercept(wine).using(methodInterceptor);
 
 app.get('/populateDb', wine.populateDb);
