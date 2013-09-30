@@ -1,3 +1,24 @@
+## Why this fork?
+* The goal of this fork is to demonstrate how to instrument an application using aspect-oriented programming techniques in concert with logging context and output patterns.
+* The NodeCellar app is the best reference application for Node.js I could find, and I am just taking advantage of it being in a build-able, runnable state.
+* Hopefully this "makeover" shows how you can quickly create highly instrumented applications without interfering (much) with your existing codebase
+
+## What is different?
+### Aspects
+* The [Scarlet](https://github.com/scarletjs/scarlet) library was leveraged to provide time tracing for certain classes and methods
+* This Aspect takes advantage of the fact that you can hijack a method in Javascript to perform "before and after" logic that is then logged.
+
+### Interceptors
+* The [Connect Logger](http://www.senchalabs.org/connect/logger.html) was introduced to capture incoming Web requests.
+
+### Logging
+* System.out calls were replaced with proper logging (winston logger) calls.
+
+## TODO?
+* Either teach winston proper patterns, or switch over to log4js
+* Figure out how to set up something like MDC in the Java world.
+
+
 # Node Cellar Sample Application with Backbone.js, Twitter Bootstrap, Node.js, Express, and MongoDB #
 
 "Node Cellar" is a sample CRUD application built with with Backbone.js, Twitter Bootstrap, Node.js, Express, and MongoDB.
